@@ -94,18 +94,18 @@ def make_points(image, average):
 
 
 '''##### DETECTING lane lines in image ######'''
-cam = cv2.VideoCapture("2023-aclhacks/hackathonThings/challenge.mp4")
+cam = cv2.VideoCapture("2023-aclhacks/hackathonThings/test2.mp4")
 oldAvg=np.array([1,1])
 while True:
     ret,image = cam.read()
     copy = np.copy(image)
     edges = cv2.Canny(copy,50,150)
+    
+    
     isolated = region(edges)
-
-
-
+    
     #DRAWING LINES: (order of params) --> region of interest, bin size (P, theta), min intersections needed, placeholder array, 
-    lines = cv2.HoughLinesP(isolated, 2, np.pi/180, 100, np.array([]), minLineLength=0, maxLineGap=10000000000)
+    lines = cv2.HoughLinesP(isolated, 2, np.pi/180, 100, np.array([]), minLineLength=100, maxLineGap=100)
     averaged_lines = average(copy, lines)
 
     if math.isnan(averaged_lines[0][0])==True or math.isnan(averaged_lines[1][0])==True:
@@ -115,8 +115,9 @@ while True:
 
     #taking wighted sum of original image and lane lines image
     lanes = cv2.addWeighted(copy, 0.8, black_lines, 1, 1)
-    cv2.imshow("iso", edges)
-    cv2.imshow("final",lanes)
+    
+    cv2.imshow("iso", lanes)
+    #cv2.imshow("final",lanes)
     k = cv2.waitKey(1)
     if k != -1:
         break
