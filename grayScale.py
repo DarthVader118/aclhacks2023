@@ -1,4 +1,5 @@
-#stuff
+
+
 #ROAD LANE DETECTION
 
 import cv2
@@ -15,7 +16,7 @@ def grey(image):
 
   #Apply Gaussian Blur --> Reduce noise and smoothen image
 def gauss(image):
-    return cv2.GaussianBlur(image, (13, 13), 0)
+    return cv2.GaussianBlur(image, (3, 3), 0)
 
   #outline the strongest gradients in the image --> this is where lines in the image are
 def canny(image):
@@ -93,13 +94,25 @@ def make_points(image, average):
 
 
 '''##### DETECTING lane lines in image ######'''
-cam = cv2.VideoCapture("2023-aclhacks/hackathonThings/test2.mp4")
+cam = cv2.VideoCapture("2023-aclhacks/hackathonThings/challenge.mp4")
 oldAvg=np.array([1,1])
 while True:
     ret,image = cam.read()
     copy = np.copy(image)
-    edges = cv2.Canny(copy,50,150)
+    gray = cv2.cvtColor(copy, cv2.COLOR_BGR2GRAY)
+    copy =gauss(gray)
+
     
+    image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    lower_yellow = np.array([75, 100, 100],dtype="uint8")
+    upper_yellow = np.array([255, 165, 165], dtype="uint8")
+    
+    mask_yellow = cv2.inRange(image_hsv, lower_yellow, upper_yellow)
+    mask_white = cv2.inRange(gray, 150, 175)
+    mask_yw = cv2.bitwise_or(mask_white, mask_yellow)
+    mask_yw_image = cv2.bitwise_and(gray, mask_yw)
+    
+    edges = canny(mask_yw_image)
     
     isolated = region(edges)
     
@@ -115,11 +128,13 @@ while True:
     #taking wighted sum of original image and lane lines image
     lanes = cv2.addWeighted(copy, 0.8, black_lines, 1, 1)
     
-    cv2.imshow("iso", lanes)
-    #cv2.imshow("final",lanes)
+    
+    cv2.imshow("iso", isolated)
+    cv2.imshow("final",lanes)
+    cv2.imshow("test", mask_yw_image)
     k = cv2.waitKey(1)
     if k != -1:
         break
-
+    
 cam.release()
 cv2.destroyAllWindows()
