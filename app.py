@@ -16,4 +16,4 @@ def execute_opencv_file():
         return f'Error executing OpenCV Python file: {str(e)}'
 
 if __name__ == '__main__':
-    app.run()
+    app.run(use_reloader=True, debug=True)

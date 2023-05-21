@@ -3,12 +3,9 @@
 #ROAD LANE DETECTION
 from pygame import mixer
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import math
 import time
-import subprocess
-subprocess.run("ls")
 
 def grey(image):
   #convert to grayscale
