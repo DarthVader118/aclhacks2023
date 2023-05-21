@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OpenCV Python File Execution</title>
+</head>
+<body>
+  <h1>OpenCV Python File Execution</h1>
+
+  <button id="execute-btn">Run OpenCV Python File</button>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('#execute-btn').click(function() {
+        $.ajax({
+          type: 'GET',
+          url: '/execute_opencv_file',
+          success: function(response) {
+            console.log(response);
+            // Handle the response here if needed
+          },
+          error: function(xhr, status, error) {
+            console.error("Error executing OpenCV Python file:", error);
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
