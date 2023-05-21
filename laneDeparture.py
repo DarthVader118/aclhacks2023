@@ -1,5 +1,3 @@
-
-
 #ROAD LANE DETECTION
 from pygame import mixer
 import cv2
@@ -98,7 +96,7 @@ def make_points(image, average):
 
 def main():
     '''##### DETECTING lane lines in image ######'''
-    cam = cv2.VideoCapture("hackathonThings/project_video.mp4")
+    cam = cv2.VideoCapture("project_video.mp4")
     oldAvg=np.array([])
     counter=0
     initTime=time.time_ns()
@@ -149,13 +147,13 @@ def main():
             #print(abs(averaged_lines[1][0]-averaged_lines[0][0]))
             
             #  lane departure warning
-            if (abs(averaged_lines[1][0]-width>=400) or abs(averaged_lines[0][0]-width>=400)) and (now-initTime)>300000000:
+            if (abs(averaged_lines[1][0]-width>=425) or abs(averaged_lines[0][0]-width>=425)) and (now-initTime)>300000000:
                 initTime=now
                 counter+=1
                 
                 print(counter)
                 mixer.init() 
-                sound=mixer.Sound("hackathonThings/info.wav")
+                sound=mixer.Sound("info.wav")
                 sound.play()
                 time.sleep(0.0000000000001)
                 
@@ -175,4 +173,4 @@ def main():
     cv2.destroyAllWindows()
     return counter
 
-#main()
+main()
