@@ -96,80 +96,83 @@ def make_points(image, average):
     x2 = int((y2 - y_int) // slope)
     return np.array([x1, y1, x2, y2])
 
+def main():
+    '''##### DETECTING lane lines in image ######'''
+    cam = cv2.VideoCapture("hackathonThings/project_video.mp4")
+    oldAvg=np.array([])
+    counter=0
+    initTime=time.time_ns()
+    while True:
+        ret,image = cam.read()
+        og=image
+        car=image[650:,0:]
+        image = image[:650, 0:]
+        
+        if ret:
+            copy = np.copy(image)
+            gray = cv2.cvtColor(copy, cv2.COLOR_BGR2GRAY)
+            copy =gauss(gray)
 
-'''##### DETECTING lane lines in image ######'''
-cam = cv2.VideoCapture("hackathonThings/project_video.mp4")
-oldAvg=np.array([])
-counter=0
-initTime=time.time_ns()
-while True:
-    ret,image = cam.read()
-    og=image
-    car=image[650:,0:]
-    image = image[:650, 0:]
-    
-    if ret:
-        copy = np.copy(image)
-        gray = cv2.cvtColor(copy, cv2.COLOR_BGR2GRAY)
-        copy =gauss(gray)
+            
+            image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+            lower_yellow = np.array([75, 100, 100],dtype="uint8")
+            upper_yellow = np.array([255, 165, 165], dtype="uint8")
+            
+            mask_yellow = cv2.inRange(image_hsv, lower_yellow, upper_yellow)
+            mask_white = cv2.inRange(gray, 150, 175)
+            mask_yw = cv2.bitwise_or(mask_white, mask_yellow)
+            mask_yw_image = cv2.bitwise_and(gray, mask_yw)
+            
+            edges = canny(mask_yw_image)
+            
+            isolated = region(edges)
+            
+            #DRAWING LINES: (order of params) --> region of interest, bin size (P, theta), min intersections needed, placeholder array, 
+            lines = cv2.HoughLinesP(isolated, 2, np.pi/180, 100, np.array([]), minLineLength=100, maxLineGap=100)
+            averaged_lines = average(copy, lines)
+            
+            if abs(averaged_lines[1][0]-averaged_lines[0][0])<=450:
+                averaged_lines=oldAvg
+                
+            oldAvg=averaged_lines
+            
+            
+            black_lines = display_lines(og, averaged_lines)
+            
+            #print(averaged_lines)
 
-        
-        image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-        lower_yellow = np.array([75, 100, 100],dtype="uint8")
-        upper_yellow = np.array([255, 165, 165], dtype="uint8")
-        
-        mask_yellow = cv2.inRange(image_hsv, lower_yellow, upper_yellow)
-        mask_white = cv2.inRange(gray, 150, 175)
-        mask_yw = cv2.bitwise_or(mask_white, mask_yellow)
-        mask_yw_image = cv2.bitwise_and(gray, mask_yw)
-        
-        edges = canny(mask_yw_image)
-        
-        isolated = region(edges)
-        
-        #DRAWING LINES: (order of params) --> region of interest, bin size (P, theta), min intersections needed, placeholder array, 
-        lines = cv2.HoughLinesP(isolated, 2, np.pi/180, 100, np.array([]), minLineLength=100, maxLineGap=100)
-        averaged_lines = average(copy, lines)
-        
-        if abs(averaged_lines[1][0]-averaged_lines[0][0])<=450:
-            averaged_lines=oldAvg
+            #taking weighted sum of original image and lane lines image
+            lanes = cv2.addWeighted(og, 0.8, black_lines, 1, 1)
             
-        oldAvg=averaged_lines
-        
-        
-        black_lines = display_lines(og, averaged_lines)
-        
-        #print(averaged_lines)
-
-        #taking weighted sum of original image and lane lines image
-        lanes = cv2.addWeighted(og, 0.8, black_lines, 1, 1)
-        
-        width, height = copy.shape
-        now = time.time_ns()
-        #print(abs(averaged_lines[1][0]-averaged_lines[0][0]))
-        
-        #  lane departure warning
-        if (abs(averaged_lines[1][0]-width>=400) or abs(averaged_lines[0][0]-width>=400)) and (now-initTime)>300000000:
-            initTime=now
-            counter+=1
+            width, height = copy.shape
+            now = time.time_ns()
+            #print(abs(averaged_lines[1][0]-averaged_lines[0][0]))
             
-            print(counter)
-            mixer.init() 
-            sound=mixer.Sound("hackathonThings/info.wav")
-            sound.play()
-            time.sleep(0.0000000000001)
-            
-        lanes = cv2.arrowedLine(lanes, (width, int(height/2)), (width, int(height/2)-100), (0,255,0), 10)
-        #cv2.imshow("iso", isolated)
-        cv2.imshow("final",lanes)
-        #cv2.imshow("og",og)
-        #time.sleep(1)
-        #cv2.imshow("test", mask_yw_image)
-        k = cv2.waitKey(1)
-        if k != -1:
+            #  lane departure warning
+            if (abs(averaged_lines[1][0]-width>=400) or abs(averaged_lines[0][0]-width>=400)) and (now-initTime)>300000000:
+                initTime=now
+                counter+=1
+                
+                print(counter)
+                mixer.init() 
+                sound=mixer.Sound("hackathonThings/info.wav")
+                sound.play()
+                time.sleep(0.0000000000001)
+                
+            lanes = cv2.arrowedLine(lanes, (width, int(height/2)), (width, int(height/2)-100), (0,255,0), 10)
+            #cv2.imshow("iso", isolated)
+            cv2.imshow("final",lanes)
+            #cv2.imshow("og",og)
+            #time.sleep(1)
+            #cv2.imshow("test", mask_yw_image)
+            k = cv2.waitKey(1)
+            if k != -1:
+                break
+        else:
             break
-    else:
-        break
-    
-cam.release()
-cv2.destroyAllWindows()
+        
+    cam.release()
+    cv2.destroyAllWindows()
+    return counter
+
+#main()
