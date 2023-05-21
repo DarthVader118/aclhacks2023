@@ -141,7 +141,7 @@ while True:
         
         #print(averaged_lines)
 
-        #taking wighted sum of original image and lane lines image
+        #taking weighted sum of original image and lane lines image
         lanes = cv2.addWeighted(og, 0.8, black_lines, 1, 1)
         
         width, height = copy.shape
@@ -159,7 +159,7 @@ while True:
             sound.play()
             time.sleep(0.0000000000001)
             
-        #lanes = cv2.arrowedLine(lanes, (width, 0), (width, int(height/2)), (0,255,0), 10)
+        lanes = cv2.arrowedLine(lanes, (width, int(height/2)), (width, int(height/2)-100), (0,255,0), 10)
         #cv2.imshow("iso", isolated)
         cv2.imshow("final",lanes)
         #cv2.imshow("og",og)
