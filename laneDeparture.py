@@ -137,18 +137,19 @@ while True:
         oldAvg=averaged_lines
         
         
-        black_lines = display_lines(image, averaged_lines)
+        black_lines = display_lines(og, averaged_lines)
         
         #print(averaged_lines)
 
         #taking wighted sum of original image and lane lines image
-        lanes = cv2.addWeighted(image, 0.8, black_lines, 1, 1)
+        lanes = cv2.addWeighted(og, 0.8, black_lines, 1, 1)
         
         width, height = copy.shape
         now = time.time_ns()
         #print(abs(averaged_lines[1][0]-averaged_lines[0][0]))
         
-        if (abs(averaged_lines[1][0]-int(width/2)>=740) or abs(averaged_lines[0][0]-int(width/2)>=740)) and (now-initTime)>300000000:
+        #  lane departure warning
+        if (abs(averaged_lines[1][0]-width>=400) or abs(averaged_lines[0][0]-width>=400)) and (now-initTime)>300000000:
             initTime=now
             counter+=1
             
@@ -158,10 +159,10 @@ while True:
             sound.play()
             time.sleep(0.0000000000001)
             
-        
-        cv2.imshow("iso", isolated)
+        #lanes = cv2.arrowedLine(lanes, (width, 0), (width, int(height/2)), (0,255,0), 10)
+        #cv2.imshow("iso", isolated)
         cv2.imshow("final",lanes)
-        cv2.imshow("og",og)
+        #cv2.imshow("og",og)
         #time.sleep(1)
         #cv2.imshow("test", mask_yw_image)
         k = cv2.waitKey(1)
