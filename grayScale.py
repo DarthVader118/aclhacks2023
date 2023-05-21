@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import time
-
+import subprocess
+subprocess.run("ls")
 
 def grey(image):
   #convert to grayscale
@@ -27,7 +28,7 @@ def region(image):
     height, width = image.shape
     #isolate the gradients that correspond to the lane lines
     triangle = np.array([
-                       [(100, height), (475, 325), (width, height)]
+                       [(50, height), (int(width/2), int(height/2)+90), (width-50, height)]
                        ])
     #create a black image with the same dimensions as original image
     mask = np.zeros_like(image)
@@ -88,8 +89,8 @@ def make_points(image, average):
     
     
     y1 = image.shape[0]
-    #how long we want our lines to be --> 3/5 the size of the image
-    y2 = int(y1 * (3/5))
+    #how long we want our lines to be --> 4/5 the size of the image
+    y2 = int(y1 * (4/5))
     #determine algebraically
     x1 = int((y1 - y_int) // slope)
     x2 = int((y2 - y_int) // slope)
@@ -97,11 +98,13 @@ def make_points(image, average):
 
 
 '''##### DETECTING lane lines in image ######'''
-cam = cv2.VideoCapture("2023-aclhacks/hackathonThings/test2.mp4")
+cam = cv2.VideoCapture("hackathonThings/project_video.mp4")
 oldAvg=np.array([])
 while True:
-    
     ret,image = cam.read()
+    car=image[650:,0:]
+    image = image[:650, 0:]
+    
     if ret:
         copy = np.copy(image)
         gray = cv2.cvtColor(copy, cv2.COLOR_BGR2GRAY)
@@ -132,12 +135,14 @@ while True:
         
         
         black_lines = display_lines(image, averaged_lines)
+        
+        #print(averaged_lines)
 
         #taking wighted sum of original image and lane lines image
         lanes = cv2.addWeighted(image, 0.8, black_lines, 1, 1)
     
     
-        #cv2.imshow("iso", isolated)
+        cv2.imshow("car", car)
         cv2.imshow("final",lanes)
         #cv2.imshow("test", mask_yw_image)
         k = cv2.waitKey(1)
